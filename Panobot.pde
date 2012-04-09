@@ -54,8 +54,8 @@ int gier_winkel = 360;
 int pitch_winkel = 0;
 int gier_min = 0;
 int gier_max = 360;
-int pitch_min = 90;
-int pitch_max = 90;
+int pitch_min = 0;
+int pitch_max = 180;
 int anzahl_bilder_soll = 0;
 int anzahl_bilder_ist = 0;
 int brennweite = 17;
@@ -132,7 +132,8 @@ void berechne_bildwinkel()
    
      bildwinkel[0]= 2*atan(sensor[0]/(2*brennweite))*180/M_PI;
      bildwinkel[1]= 2*atan(sensor[1]/(2*brennweite))*180/M_PI;
-     Serial.print( "Bildwinkel = "); Serial.println( bildwinkel[0]);
+     Serial.print( "Bildwinkelh = "); Serial.println( bildwinkel[0]);
+     Serial.print( "Bildwinkelv = "); Serial.println( bildwinkel[1]);
    
 }
 
@@ -140,7 +141,7 @@ void berechne_bildwinkel()
 // Hilfsfunktionen für die Bewegung
 void foto()
 {
-  delay(10); //Warten bis die Kammera still steht
+  delay(1000); //Warten bis die Kammera still steht
   
   if (debug_on) Serial.println("Foto!"); 
   //uint16_t rc = Eos.Capture(); // Foto machen
@@ -157,7 +158,7 @@ void gier(int pstart, int pende)
   int serv_pos=pstart; 
   //gierservo.write(serv_pos);
   int temp;
-  
+  Serial.print("Gier: "); Serial.println(serv_pos);
   put(0,map(serv_pos, 0,360 , 500 , 5000));
   foto();
   zeige_fortschritt();
@@ -165,7 +166,7 @@ void gier(int pstart, int pende)
    {    
      serv_pos=serv_pos+bildwinkel[0];
      if (serv_pos>pende) serv_pos=pende;
-     if (debug_on) Serial.println(serv_pos);
+     if (debug_on) {Serial.print("Gier: "); Serial.println(serv_pos);}
     // gierservo.write(serv_pos);
     put(0,map(serv_pos,0,360,500,5000));
      foto();
@@ -179,11 +180,15 @@ void pitch(int tstart, int tende, int pstart, int pende)
 {
   anzahl_bilder_ist=0;
   berechne_bildzahl();
-  Serial.println(bildwinkel[0]);
+  Serial.println("Starte Panorma \tv_start\tv_ende\th_start\th_ende");
+  Serial.print("\t\t"); Serial.print(tstart);Serial.print("\t");
+  Serial.print( tende);Serial.print("\t");Serial.print(pstart);Serial.print("\t");Serial.println(pende);
+  Serial.print("Pitchwinkel pro Bild: ");Serial.print(bildwinkel[1]);
   lcd.setBacklight(RED);
   int serv_pos=tstart; 
   //pitchservo.write(serv_pos);
-  put(1,map(serv_pos,0,360,500,5000));
+  Serial.print("Pitch: "); Serial.println(serv_pos);
+  put(5,map(serv_pos,0,180,1200,4500));
   gier(pstart, pende);
   while (serv_pos<tende)
    {
@@ -191,7 +196,8 @@ void pitch(int tstart, int tende, int pstart, int pende)
      if (serv_pos>tende) serv_pos=tende;
      if (debug_on) Serial.println(serv_pos);
      //pitchservo.write(serv_pos);
-     put(1,map(serv_pos,0,360,500,5000));
+     Serial.print("Pitch: "); Serial.println(serv_pos);
+     put(5,map(serv_pos,0,180,1200,4500));
      gier(pstart, pende);
    } 
    lcd.setBacklight(GREEN); 
